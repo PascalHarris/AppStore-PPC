@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'App Store PPC' target in the 'App Store PPC' project
+//
+
+#ifdef __OBJC__
+    #import <Cocoa/Cocoa.h>
+#endif
