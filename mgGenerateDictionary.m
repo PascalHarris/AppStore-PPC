@@ -95,6 +95,55 @@
 	return [NSDictionary dictionaryWithObjectsAndKeys:applicationName,@"AppName",versionString,@"Version",nil];
 }
 
+-(NSDictionary*)extractDataFromTable:(NSString*)HTMLTable {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	//find metadata
+	NSMutableDictionary* returnDictionary = [NSMutableDictionary new];
+	NSRange metaRange;
+	metaRange.location = 0;
+	NSString* rating = @"0";
+	while ((metaRange.location != NSNotFound)  && !terminate) { // look at, and fetch, all metadata for the app
+		NSString* metaData = [HTMLTable substringWithRange:NSMakeRange(metaRange.location, [HTMLTable length] - metaRange.location)];
+		
+		NSRange subRange = [PPC_WebWangers getRangeInString:metaData forTag:@"tr"]; //gets a line of data
+		if (subRange.location != NSNotFound) {
+			NSString* metaDataItem = (subRange.location != NSNotFound)?[metaData substringWithRange:subRange]:@"";
+			
+			NSRange metaTagRange = [PPC_WebWangers getRangeInString:metaDataItem forTag:@"strong"]; 
+			NSString* metaTag = (metaTagRange.location != NSNotFound)?[metaDataItem substringWithRange:NSMakeRange(metaTagRange.location, metaTagRange.length - 1)]:@"";// need to trim colon
+			
+			if ([metaTag isEqualToString:@"Rating"]) {
+				NSRange ratingRange = [PPC_WebWangers getRangeInString:metaData forTag:@"span" withAttributeType:@"class" attribute:@"on"]; //gets a line of data
+				if (ratingRange.location == NSNotFound) {
+					ratingRange = [PPC_WebWangers getRangeInString:metaData forTag:@"span" withAttributeType:@"class" attribute:@"off"]; //gets a line of data
+				}
+				if (ratingRange.location != NSNotFound) {
+					NSString* temprating = [metaData substringWithRange:ratingRange];
+					if ([PPC_StringWangers stringIsNumber:temprating]) {
+						rating = [temprating copy];
+					}
+				}
+				[returnDictionary setObject:([rating length] > 0?rating:@"0") forKey:@"Rating"];
+			}
+			
+			metaTagRange = [PPC_WebWangers getRangeInString:metaDataItem forTag:@"a" withAttributeType:@"href"];
+			NSString* metaItem = (metaTagRange.location != NSNotFound)?[metaDataItem substringWithRange:metaTagRange]:@"";// need to trim colon
+			
+			if ([metaTag length] > 0) {
+				[returnDictionary setObject:[PPC_WebWangers replaceMIMECharactersInString:metaItem] forKey:metaTag];
+			}
+			
+			metaRange.location+=(subRange.location + subRange.length);
+		} else {
+			metaRange = subRange;
+		}
+	}
+	
+	return [returnDictionary autorelease];
+	
+	[pool release];
+}
+
 -(void)extractDataFromPage:(NSString*)pageSource withYear:(int)currentYear {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
@@ -136,44 +185,48 @@
 			[appDictionary setObject:imgLink forKey:@"Application Image"]; // May want to ensure the URL is complete before storing it.
 			
 			//find metadata
-			NSRange metaRange;
-			metaRange.location = 0;
-			NSString* rating = @"0";
-			while ((metaRange.location != NSNotFound)  && !terminate) { // look at, and fetch, all metadata for the app
-				NSString* metaData = [currentApp substringWithRange:NSMakeRange(metaRange.location, [currentApp length] - metaRange.location)];
-				
-				NSRange subRange = [PPC_WebWangers getRangeInString:metaData forTag:@"tr"]; //gets a line of data
-				if (subRange.location != NSNotFound) {
-					NSString* metaDataItem = (subRange.location != NSNotFound)?[metaData substringWithRange:subRange]:@"";
-					
-					NSRange metaTagRange = [PPC_WebWangers getRangeInString:metaDataItem forTag:@"strong"]; 
-					NSString* metaTag = (metaTagRange.location != NSNotFound)?[metaDataItem substringWithRange:NSMakeRange(metaTagRange.location, metaTagRange.length - 1)]:@"";// need to trim colon
-					
-					if ([metaTag isEqualToString:@"Rating"]) {
-						NSRange ratingRange = [PPC_WebWangers getRangeInString:metaData forTag:@"span" withAttributeType:@"class" attribute:@"on"]; //gets a line of data
-						if (ratingRange.location == NSNotFound) {
-							ratingRange = [PPC_WebWangers getRangeInString:metaData forTag:@"span" withAttributeType:@"class" attribute:@"off"]; //gets a line of data
-						}
-						if (ratingRange.location != NSNotFound) {
-							NSString* temprating = [metaData substringWithRange:ratingRange];
-							if ([PPC_StringWangers stringIsNumber:temprating]) {
-								rating = [temprating copy];
-							}
-						}
-						[appDictionary setObject:([rating length] > 0?rating:@"0") forKey:@"Rating"];
-					}
-					
-					metaTagRange = [PPC_WebWangers getRangeInString:metaDataItem forTag:@"a" withAttributeType:@"href"];
-					NSString* metaItem = (metaTagRange.location != NSNotFound)?[metaDataItem substringWithRange:metaTagRange]:@"";// need to trim colon
-					
-					if ([metaTag length] > 0) {
-						[appDictionary setObject:[PPC_WebWangers replaceMIMECharactersInString:metaItem] forKey:metaTag];
-					}
-					
-					metaRange.location+=(subRange.location + subRange.length);
-				} else {
-					metaRange = subRange;
-				}
+			/*NSRange metaRange;
+			 metaRange.location = 0;
+			 NSString* rating = @"0";
+			 while ((metaRange.location != NSNotFound)  && !terminate) { // look at, and fetch, all metadata for the app
+			 NSString* metaData = [currentApp substringWithRange:NSMakeRange(metaRange.location, [currentApp length] - metaRange.location)];
+			 
+			 NSRange subRange = [PPC_WebWangers getRangeInString:metaData forTag:@"tr"]; //gets a line of data
+			 if (subRange.location != NSNotFound) {
+			 NSString* metaDataItem = (subRange.location != NSNotFound)?[metaData substringWithRange:subRange]:@"";
+			 
+			 NSRange metaTagRange = [PPC_WebWangers getRangeInString:metaDataItem forTag:@"strong"]; 
+			 NSString* metaTag = (metaTagRange.location != NSNotFound)?[metaDataItem substringWithRange:NSMakeRange(metaTagRange.location, metaTagRange.length - 1)]:@"";// need to trim colon
+			 
+			 if ([metaTag isEqualToString:@"Rating"]) {
+			 NSRange ratingRange = [PPC_WebWangers getRangeInString:metaData forTag:@"span" withAttributeType:@"class" attribute:@"on"]; //gets a line of data
+			 if (ratingRange.location == NSNotFound) {
+			 ratingRange = [PPC_WebWangers getRangeInString:metaData forTag:@"span" withAttributeType:@"class" attribute:@"off"]; //gets a line of data
+			 }
+			 if (ratingRange.location != NSNotFound) {
+			 NSString* temprating = [metaData substringWithRange:ratingRange];
+			 if ([PPC_StringWangers stringIsNumber:temprating]) {
+			 rating = [temprating copy];
+			 }
+			 }
+			 [appDictionary setObject:([rating length] > 0?rating:@"0") forKey:@"Rating"];
+			 }
+			 
+			 metaTagRange = [PPC_WebWangers getRangeInString:metaDataItem forTag:@"a" withAttributeType:@"href"];
+			 NSString* metaItem = (metaTagRange.location != NSNotFound)?[metaDataItem substringWithRange:metaTagRange]:@"";// need to trim colon
+			 
+			 if ([metaTag length] > 0) {
+			 [appDictionary setObject:[PPC_WebWangers replaceMIMECharactersInString:metaItem] forKey:metaTag];
+			 }
+			 
+			 metaRange.location+=(subRange.location + subRange.length);
+			 } else {
+			 metaRange = subRange;
+			 }
+			 } */
+			NSDictionary* tempDictionary = [self extractDataFromTable:currentApp];
+			if (tempDictionary && [[tempDictionary allKeys] count] > 0) {
+				[appDictionary addEntriesFromDictionary:tempDictionary];
 			}
 			
 			[applicationLibrary addObject:[appDictionary copy]];
@@ -248,7 +301,7 @@
 		
 		NSRange pageRange = [PPC_WebWangers getRangeInString:pageSource forTag:@"div" withAttributeType:@"id" attribute:@"paper"];
 		if (pageRange.location != NSNotFound) {
-			pageSource = [pageSource substringWithRange:pageRange];
+			pageSource = [pageSource substringWithRange:pageRange];			
 			pageRange = [PPC_WebWangers getRangeInString:pageSource forTag:@"h1"];
 			
 			NSString *applicationName = (pageRange.location != NSNotFound)?[pageSource substringWithRange:pageRange]:@"";
@@ -265,7 +318,9 @@
 					imgLink = [NSString stringWithFormat:@"%@%@",
 							   [[NSBundle mainBundle] localizedStringForKey:@"store website" value:@"" table:@"Resources"], 
 							   (rootURLLocation.location == NSNotFound)?imgLink:[imgLink substringWithRange:NSMakeRange(rootURLLocation.length, [imgLink length] - rootURLLocation.length)]];
-					[imageLinkArray addObject:imgLink];
+					NSImage *image = [[NSImage alloc] initWithContentsOfURL:[NSURL URLWithString:imgLink]];
+					[imageLinkArray addObject:[image copy]]; // Put actual image data here.
+					[image release];
 				}
 				if (pageRange.location != NSNotFound && [imageLinks length] >= pageRange.location + pageRange.length) {
 					imageLinks = [imageLinks substringWithRange:NSMakeRange(pageRange.location + pageRange.length, [imageLinks length] - (pageRange.location + pageRange.length))];
@@ -275,6 +330,99 @@
 			}
 			[returnDictionary setObject:[imageLinkArray copy] forKey:@"Image Links"];
 			[imageLinkArray release];
+			
+			//Need download links - (need to implement a download manager too)
+			pageRange = [PPC_WebWangers getRangeInString:pageSource forTag:@"div" withAttributeType:@"class" attribute:@"note download"];
+			NSString* downloadLinks = (pageRange.location != NSNotFound)?[pageSource substringWithRange:pageRange]:@"";
+			NSMutableArray* downloadLinkArray = [NSMutableArray new];
+			while (pageRange.location != NSNotFound) {
+				pageRange = [PPC_WebWangers getRangeInString:downloadLinks forTag:@"a" withAttributeType:@"href"];
+				NSString* downloadLink = (pageRange.location != NSNotFound)?[PPC_WebWangers getLinkFromTag:downloadLinks tagType:@"href"]:@"";
+				if ([downloadLink length] > 1) {
+					if (([downloadLink rangeOfString:@"ftp://"].location == NSNotFound) && 
+						([downloadLink rangeOfString:@"http://"].location == NSNotFound) && 
+						([downloadLink rangeOfString:@"https://"].location == NSNotFound) && 
+						([downloadLink rangeOfString:@"ftps://"].location == NSNotFound) && 
+						([downloadLink rangeOfString:@"sftp://"].location == NSNotFound)) {
+						NSRange rootURLLocation = [downloadLink rangeOfString:[[NSBundle mainBundle] localizedStringForKey:@"store website" value:@"" table:@"Resources"]];
+						downloadLink = [NSString stringWithFormat:@"%@%@",
+										[[NSBundle mainBundle] localizedStringForKey:@"store website" value:@"" table:@"Resources"], 
+										(rootURLLocation.location == NSNotFound)?downloadLink:[downloadLink substringWithRange:NSMakeRange(rootURLLocation.length, [downloadLink length] - rootURLLocation.length)]];
+					}
+					[downloadLinkArray addObject:downloadLink]; 
+				}
+				if (pageRange.location != NSNotFound && [downloadLinks length] >= pageRange.location + pageRange.length) {
+					downloadLinks = [downloadLinks substringWithRange:NSMakeRange(pageRange.location + pageRange.length, [downloadLinks length] - (pageRange.location + pageRange.length))];
+				} else if ([downloadLinks length] >= pageRange.length) {
+					pageRange.location = NSNotFound;
+				}
+			}
+			[returnDictionary setObject:[downloadLinkArray copy] forKey:@"Download Links"];
+			[downloadLinkArray release];
+			
+			pageRange = [PPC_WebWangers getRangeInString:pageSource forTag:@"table"];
+			NSString* tableData = (pageRange.location != NSNotFound)?[pageSource substringWithRange:pageRange]:@"";
+			NSDictionary* tempDictionary = [self extractDataFromTable:tableData];
+			if (tempDictionary && [[tempDictionary allKeys] count] > 0) {
+				[returnDictionary addEntriesFromDictionary:tempDictionary];
+			}
+			
+			pageRange = [PPC_WebWangers getRangeInString:pageSource forTag:@"div" withAttributeType:@"class" attribute:@"game-preview"];
+			unsigned int start = pageRange.location + pageRange.length;
+			if (pageRange.location != NSNotFound && [pageSource length] - start > 0) { // Need to turn HTML tags to NSAttributedString
+				pageRange = NSMakeRange(start, [pageSource length] - start);
+				NSString* descriptionData = [pageSource substringWithRange:pageRange];
+				
+				pageRange = [descriptionData rangeOfString:@"<strong>Compatibility</strong>" options:NSCaseInsensitiveSearch];
+				descriptionData = (pageRange.location != NSNotFound)?[descriptionData substringWithRange:NSMakeRange(0, pageRange.location)]:descriptionData;
+				[returnDictionary setObject:descriptionData forKey:@"Description"];
+			}
+			
+			pageRange = [pageSource rangeOfString:@"<strong>Compatibility</strong>" options:NSCaseInsensitiveSearch]; //Should probably limit this to comments.
+			NSMutableDictionary* compatibilityDictionary = [NSMutableDictionary new];
+			NSMutableArray* cpuArray = [NSMutableArray new];
+			NSString* versionNumber = @"";
+			BOOL xCompatible = NO, classicCompatible = NO;
+			if (pageRange.location != NSNotFound) {
+				NSString* compatibilityData = [pageSource substringWithRange:NSMakeRange(pageRange.location, [pageSource length] - pageRange.location)];
+				NSArray* processorTags = [NSArray arrayWithObjects:[NSArray arrayWithObjects:@"PowerPC",@"PPC",@"Power PC", nil],
+										  [NSArray arrayWithObjects:@"68k",@"68000",@"68020",@"68030",@"68040", nil],
+										  [NSArray arrayWithObjects:@"Intel",@"x64",@"x86", nil],
+										  nil];
+				NSArray* OSTags = [NSArray arrayWithObjects:@"System",@"MacOSX",@"Mac OS X",@"Mac OS",@"MacOS",@"OS X",@"OSX",@"Hypercard", nil ]; //check for number after MacOSX or System or MacOS
+				for (int i = 0; i < [processorTags count]; i++) {
+					for (int j = 0; j < [[processorTags objectAtIndex:i] count]; j++) {
+						if ([compatibilityData rangeOfString:[[processorTags objectAtIndex:i] objectAtIndex:j]  options:NSCaseInsensitiveSearch].location != NSNotFound) {
+							if (![cpuArray containsObject:[[processorTags objectAtIndex:i] objectAtIndex:0]]) {
+								[cpuArray addObject:[[processorTags objectAtIndex:i] objectAtIndex:0]];
+							}
+						}
+					}
+				}
+				
+				for (int i = 0; i < [OSTags count]; i++) {
+					NSRange osRange = [compatibilityData rangeOfString:[OSTags objectAtIndex:i] options:NSCaseInsensitiveSearch];
+					if ((osRange.location != NSNotFound) && !versionNumber) {
+						xCompatible = ([[OSTags objectAtIndex:i] rangeOfString:@"X" options:NSCaseInsensitiveSearch].location != NSNotFound)?YES:xCompatible;
+						classicCompatible = ([[OSTags objectAtIndex:i] rangeOfString:@"X" options:NSCaseInsensitiveSearch].location == NSNotFound)?YES:classicCompatible;
+						
+						NSString* versionNumber = [compatibilityData substringWithRange:NSMakeRange(osRange.location + osRange.length + 1, [compatibilityData length] - (osRange.location + osRange.length + 1))]; // get version number
+						NSRange osRange = [versionNumber rangeOfString:@" " options:NSCaseInsensitiveSearch];
+						versionNumber = (osRange.location != NSNotFound)?[versionNumber substringWithRange:NSMakeRange(0, osRange.location)]:versionNumber;
+						versionNumber = ([PPC_StringWangers stringIsNumber:versionNumber])?versionNumber:@"";
+						
+					}
+				}
+			}
+			classicCompatible = (!classicCompatible && !xCompatible)?YES:classicCompatible; //dirty hack fix - if we aren't X compatible and we aren't classic compatible we must be classic compatible.
+			[compatibilityDictionary setObject:[NSNumber numberWithBool:classicCompatible] forKey:@"Classic Compatible"];
+			[compatibilityDictionary setObject:[NSNumber numberWithBool:xCompatible] forKey:@"X Compatible"];
+			[compatibilityDictionary setObject:versionNumber forKey:@"Minimum Version"];
+			[compatibilityDictionary setObject:[cpuArray copy] forKey:@"Supported Architectures"];
+			
+			[returnDictionary setObject:[compatibilityDictionary copy] forKey:@"Compatibility"];
+			[cpuArray release];
+			[compatibilityDictionary release];
 		}
 	}
 	
