@@ -274,8 +274,8 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>3</integer>
-									<integer>1</integer>
+									<integer>16</integer>
+									<integer>4</integer>
 									<integer>0</integer>
 								</array>
 							</array>
@@ -317,7 +317,7 @@
 								<key>PBXProjectModuleGUID</key>
 								<string>1CE0B20306471E060097A5F4</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>mgGenerateDictionary.m</string>
+								<string>MainWindow.m</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -325,11 +325,11 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CE0B20406471E060097A5F4</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>mgGenerateDictionary.m</string>
+										<string>MainWindow.m</string>
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>8BFBF049222178B400CAD5F1</string>
+										<string>8BFBF0A62221DC1100CAD5F1</string>
 										<key>history</key>
 										<array>
 											<string>8B8DFD7A221B0CF90075D80D</string>
@@ -346,9 +346,9 @@
 											<string>8BFBF01F2221736C00CAD5F1</string>
 											<string>8BFBF0202221736C00CAD5F1</string>
 											<string>8BFBF0212221736C00CAD5F1</string>
-											<string>8BFBF043222178B400CAD5F1</string>
-											<string>8BFBF044222178B400CAD5F1</string>
-											<string>8BFBF045222178B400CAD5F1</string>
+											<string>8BFBF04B2221BA9E00CAD5F1</string>
+											<string>8BFBF09D2221DAF200CAD5F1</string>
+											<string>8BFBF09E2221DAF200CAD5F1</string>
 										</array>
 										<key>prevStack</key>
 										<array>
@@ -380,6 +380,17 @@
 											<string>8BFBF046222178B400CAD5F1</string>
 											<string>8BFBF047222178B400CAD5F1</string>
 											<string>8BFBF048222178B400CAD5F1</string>
+											<string>8BFBF04D2221BA9E00CAD5F1</string>
+											<string>8BFBF0742221C32C00CAD5F1</string>
+											<string>8BFBF0752221C32C00CAD5F1</string>
+											<string>8BFBF0762221C32C00CAD5F1</string>
+											<string>8BFBF07E2221C39500CAD5F1</string>
+											<string>8BFBF0872221D6D400CAD5F1</string>
+											<string>8BFBF0882221D6D400CAD5F1</string>
+											<string>8BFBF0892221D6D400CAD5F1</string>
+											<string>8BFBF08A2221D6D400CAD5F1</string>
+											<string>8BFBF09F2221DAF200CAD5F1</string>
+											<string>8BFBF0A02221DAF200CAD5F1</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -597,8 +608,6 @@
 					<key>Dock</key>
 					<array>
 						<dict>
-							<key>BecomeActive</key>
-							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
@@ -621,6 +630,8 @@
 							<string>218pt</string>
 						</dict>
 						<dict>
+							<key>BecomeActive</key>
+							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
@@ -925,18 +936,18 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 0}, {1919, 226}}</string>
+								<string>{{0, 0}, {1376, 561}}</string>
 								<key>RubberWindowFrame</key>
-								<string>0 43 1919 267 0 0 1920 1058 </string>
+								<string>28 7 1376 602 0 0 1920 1058 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXDebugCLIModule</string>
 							<key>Proportion</key>
-							<string>226pt</string>
+							<string>561pt</string>
 						</dict>
 					</array>
 					<key>Proportion</key>
-					<string>226pt</string>
+					<string>561pt</string>
 				</dict>
 			</array>
 			<key>Name</key>
@@ -956,7 +967,7 @@
 			<key>ToolbarConfiguration</key>
 			<string>xcode.toolbar.config.consoleV3</string>
 			<key>WindowString</key>
-			<string>0 43 1919 267 0 0 1920 1058 </string>
+			<string>28 7 1376 602 0 0 1920 1058 </string>
 			<key>WindowToolGUID</key>
 			<string>1C78EAAD065D492600B07095</string>
 			<key>WindowToolIsVisible</key>

@@ -255,25 +255,26 @@
 -(void)buildCollectionView {
 	int viewWidth = 200, viewHeight = 200, spacing = 10, itemCount = 8;
 	int columns = [collectionView frame].size.width / viewWidth;
-	int rows = itemCount / columns;
+	int rows = ceil(itemCount / columns);
+	int collectionViewHeight = rows * viewHeight;
+	collectionViewHeight = collectionViewHeight > [collectionView frame].size.height?collectionViewHeight:[collectionView frame].size.height;
 	
-	[self emptyView:collectionView.documentView];
+	[self emptyView:collectionView.documentView];	
+	NSView* replacementView = [[NSView alloc] initWithFrame:NSMakeRect(0,0,[collectionView frame].size.width, collectionViewHeight)];
 	
-	NSView* replacementView = [[NSView alloc] initWithFrame:NSMakeRect(0,0,[collectionView frame].size.width, rows*viewHeight)];
-	
-	for (int i = itemCount; i >= 0; --i) { //item count needs to be taken from the collectionview
+	for (int i = 0; i < itemCount; i++) { //item count needs to be taken from the collectionview
 		int itemColumn = i % columns;
-		int itemRow = i / columns;
-		int index = itemCount - i;
+		int itemRow = (i / columns) + 1;
+		NSLog(@"%d: R%d C%d", i, itemRow, itemColumn);
 		
-		NSDictionary* item = [libraryArray objectAtIndex:index];
+		NSDictionary* item = [libraryArray objectAtIndex:i];
 		
 		[replacementView addSubview:[self buildViewForItem:item 
 												 withFrame:NSMakeRect((itemColumn * viewWidth) + (spacing / 2), 
-																	  (itemRow * viewHeight) + (spacing / 2), 
+																	  collectionViewHeight - ((itemRow * viewHeight) + (spacing / 2)), 
 																	  viewWidth - spacing, 
 																	  viewHeight - spacing)
-												   withTag:index]];
+												   withTag:i]];
 	}
 	if (replacementView) {
 		collectionView.documentView = replacementView;
@@ -282,17 +283,49 @@
 
 #pragma mark Build Content View
 
+-(void)swapView:(NSView*)oldView toView:(NSView*)newView movingIn:(BOOL)movingIn {
+	NSImageView* oldImageView = [[NSImageView alloc] initWithFrame:[oldView frame]];
+	[oldView lockFocus];
+	NSBitmapImageRep * oldViewBitmap = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:[oldView bounds]] autorelease];
+	NSImage *oldViewImage = [[[NSImage alloc] init] autorelease];
+	[oldViewImage addRepresentation:oldViewBitmap];
+	[oldImageView setImage:oldViewImage];
+	[oldView unlockFocus];
+	[[mainWindow contentView] addSubview:oldImageView];
+	[oldView setHidden:YES];
+	
+	NSImageView* newImageView = [[NSImageView alloc] initWithFrame:[newView frame]];
+	[newView lockFocus];
+	NSImage *newViewImage = [[NSImage alloc] initWithData:[newView dataWithPDFInsideRect:[newView bounds]]];
+	
+	[newImageView setImage:newViewImage];
+	[newView unlockFocus];
+	[[mainWindow contentView] addSubview:newImageView];
+	[newView setHidden:YES];
+	
+	for (int i = 0; i <= [oldImageView frame].size.width; i+=[oldImageView frame].size.width / animationFrames) {
+		int newViewMove = movingIn?[oldImageView frame].size.width - i:0 - [oldImageView frame].size.width + i;
+		int oldViewMove = movingIn?0 - i:i;
+		[oldImageView setFrame:NSMakeRect(oldViewMove, 0, [oldImageView frame].size.width, [oldImageView frame].size.height)];
+		[newImageView setFrame:NSMakeRect(newViewMove, 0, [oldImageView frame].size.width, [oldImageView frame].size.height)];
+		[[mainWindow contentView] display];
+		[oldImageView display];
+		[newImageView display];
+	}
+	[newView setFrame:[oldView frame]];
+	[newView setHidden:NO];
+	[oldImageView removeFromSuperview];
+	[oldImageView release];
+	[newImageView removeFromSuperview];
+	[newImageView release];	
+}
+
 -(IBAction)returnToMainView:(id)sender {
 	[masterView setFrame:NSMakeRect(-[[mainWindow contentView] frame].size.width, 0, [masterView frame].size.width, [masterView frame].size.height)];
 	[masterView setHidden:NO];
 	
-	for (int i = 0; i <= [masterView frame].size.width; i+=[masterView frame].size.width / animationFrames) {
-		[masterView setFrame:NSMakeRect(-[masterView frame].size.width + i, 0, [masterView frame].size.width, [masterView frame].size.height)];
-		[detailView setFrame:NSMakeRect(i, 0, [masterView frame].size.width, [masterView frame].size.height)];
-		[[mainWindow contentView] display];
-		[masterView display];
-		[detailView display];
-	}
+	[self swapView:detailView toView:masterView movingIn:NO];
+	
 	[detailView removeFromSuperview];
 	[detailView release];
 }
@@ -308,19 +341,10 @@
 														  [masterView frame].size.height)]; //put dictionary into Item
 	[[mainWindow contentView] addSubview:detailView];
 	
-	for (int i = 0; i <= [masterView frame].size.width; i+=[masterView frame].size.width / animationFrames) {
-		[masterView setFrame:NSMakeRect(-i, 0, [masterView frame].size.width, [masterView frame].size.height)];
-		[detailView setFrame:NSMakeRect([masterView frame].size.width - i, 0, [masterView frame].size.width, [masterView frame].size.height)];
-		[[mainWindow contentView] display];
-		[masterView display];
-		[detailView display];
-	}
-	[masterView setHidden:YES];	
+	[self swapView:masterView toView:detailView movingIn:YES];
 }
 
 -(void)updateDetailView:(id)object {
-	NSLog(@"Updating Detail View");
-	
 	[refreshThread release];
 	refreshThread = nil;
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"UpdateDetailView" object:nil];
@@ -352,9 +376,5 @@
 }
 
 #pragma mark Experimentation
-/*
--(IBAction)testAnimate:(id)sender {
-	[self animateToDetailView:nil];
-}*/
 
 @end

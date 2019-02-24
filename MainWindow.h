@@ -10,7 +10,7 @@
 #import <Foundation/Foundation.h>
 #import "mgGenerateDictionary.h"
 
-#define animationFrames 20
+#define animationFrames 30
 
 @interface TaggableView : NSView
 {
@@ -54,8 +54,6 @@
 	IBOutlet NSScrollView* collectionView;
 	
 }
-
--(IBAction)testAnimate:(id)sender;
 
 -(IBAction)refreshLibrary:(id)sender;
 -(IBAction)endRefreshLibrary:(id)sender;
