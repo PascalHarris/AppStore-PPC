@@ -184,46 +184,6 @@
 			}
 			[appDictionary setObject:imgLink forKey:@"Application Image"]; // May want to ensure the URL is complete before storing it.
 			
-			//find metadata
-			/*NSRange metaRange;
-			 metaRange.location = 0;
-			 NSString* rating = @"0";
-			 while ((metaRange.location != NSNotFound)  && !terminate) { // look at, and fetch, all metadata for the app
-			 NSString* metaData = [currentApp substringWithRange:NSMakeRange(metaRange.location, [currentApp length] - metaRange.location)];
-			 
-			 NSRange subRange = [PPC_WebWangers getRangeInString:metaData forTag:@"tr"]; //gets a line of data
-			 if (subRange.location != NSNotFound) {
-			 NSString* metaDataItem = (subRange.location != NSNotFound)?[metaData substringWithRange:subRange]:@"";
-			 
-			 NSRange metaTagRange = [PPC_WebWangers getRangeInString:metaDataItem forTag:@"strong"]; 
-			 NSString* metaTag = (metaTagRange.location != NSNotFound)?[metaDataItem substringWithRange:NSMakeRange(metaTagRange.location, metaTagRange.length - 1)]:@"";// need to trim colon
-			 
-			 if ([metaTag isEqualToString:@"Rating"]) {
-			 NSRange ratingRange = [PPC_WebWangers getRangeInString:metaData forTag:@"span" withAttributeType:@"class" attribute:@"on"]; //gets a line of data
-			 if (ratingRange.location == NSNotFound) {
-			 ratingRange = [PPC_WebWangers getRangeInString:metaData forTag:@"span" withAttributeType:@"class" attribute:@"off"]; //gets a line of data
-			 }
-			 if (ratingRange.location != NSNotFound) {
-			 NSString* temprating = [metaData substringWithRange:ratingRange];
-			 if ([PPC_StringWangers stringIsNumber:temprating]) {
-			 rating = [temprating copy];
-			 }
-			 }
-			 [appDictionary setObject:([rating length] > 0?rating:@"0") forKey:@"Rating"];
-			 }
-			 
-			 metaTagRange = [PPC_WebWangers getRangeInString:metaDataItem forTag:@"a" withAttributeType:@"href"];
-			 NSString* metaItem = (metaTagRange.location != NSNotFound)?[metaDataItem substringWithRange:metaTagRange]:@"";// need to trim colon
-			 
-			 if ([metaTag length] > 0) {
-			 [appDictionary setObject:[PPC_WebWangers replaceMIMECharactersInString:metaItem] forKey:metaTag];
-			 }
-			 
-			 metaRange.location+=(subRange.location + subRange.length);
-			 } else {
-			 metaRange = subRange;
-			 }
-			 } */
 			NSDictionary* tempDictionary = [self extractDataFromTable:currentApp];
 			if (tempDictionary && [[tempDictionary allKeys] count] > 0) {
 				[appDictionary addEntriesFromDictionary:tempDictionary];
@@ -318,9 +278,14 @@
 					imgLink = [NSString stringWithFormat:@"%@%@",
 							   [[NSBundle mainBundle] localizedStringForKey:@"store website" value:@"" table:@"Resources"], 
 							   (rootURLLocation.location == NSNotFound)?imgLink:[imgLink substringWithRange:NSMakeRange(rootURLLocation.length, [imgLink length] - rootURLLocation.length)]];
-					NSImage *image = [[NSImage alloc] initWithContentsOfURL:[NSURL URLWithString:imgLink]];
+					
+/*					NSURL* imgURL = [[NSURL alloc] initWithString:imgLink];
+					NSLog(@"%@",imgURL);
+					NSImage *image = [[NSImage alloc] initWithContentsOfURL:imgURL];
 					[imageLinkArray addObject:[image copy]]; // Put actual image data here.
 					[image release];
+					[imgURL release];*/
+					[imageLinkArray addObject:imgLink];
 				}
 				if (pageRange.location != NSNotFound && [imageLinks length] >= pageRange.location + pageRange.length) {
 					imageLinks = [imageLinks substringWithRange:NSMakeRange(pageRange.location + pageRange.length, [imageLinks length] - (pageRange.location + pageRange.length))];
@@ -375,6 +340,7 @@
 				
 				pageRange = [descriptionData rangeOfString:@"<strong>Compatibility</strong>" options:NSCaseInsensitiveSearch];
 				descriptionData = (pageRange.location != NSNotFound)?[descriptionData substringWithRange:NSMakeRange(0, pageRange.location)]:descriptionData;
+				
 				[returnDictionary setObject:descriptionData forKey:@"Description"];
 			}
 			

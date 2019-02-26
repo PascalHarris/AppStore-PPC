@@ -12,7 +12,7 @@
 
 #define animationFrames 30
 #define labelHeight 22
-#define contentHeight 60
+#define contentHeight 100
 #define labelFontSize 17.0
 #define contentFontSize 12.0
 
@@ -49,7 +49,7 @@
 }
 
 - (float)resize;
-- (void)updateDetails:(NSDictionary*)details;
+- (void)updateDetails:(NSDictionary*)details initialUpdate:(BOOL)fullUpdate;
 
 @end
 
