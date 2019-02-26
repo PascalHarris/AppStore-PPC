@@ -11,6 +11,47 @@
 #import "mgGenerateDictionary.h"
 
 #define animationFrames 30
+#define labelHeight 22
+#define contentHeight 60
+#define labelFontSize 17.0
+#define contentFontSize 12.0
+
+@interface UIHelpers : NSObject
+{
+	
+}
++(NSTextField*)createLabelWithFrame:(NSRect)frame;
++(NSDictionary*)attributesWithFontSize:(float)size andColour:(NSColor*)colour;
++(void)setString:(NSString*)string forLabel:(NSTextField*)label withAttributes:(NSDictionary*)attrs;
+
+@end
+
+
+@interface DetailView : NSView
+{
+	NSRect scrollviewFrameSize;
+	IBOutlet NSScrollView* detailScrollView;
+	IBOutlet NSTextField* titleField;
+	IBOutlet NSTextField* classField;
+	IBOutlet NSTextField* publisherField;
+	IBOutlet NSView* ratingView;
+	IBOutlet NSBox* horizontalLine1;
+	IBOutlet NSTextField* previewLabel;
+	IBOutlet NSScrollView* previewView;
+	IBOutlet NSTextField* descriptionField;
+	IBOutlet NSBox* horizontalLine2;
+	IBOutlet NSTextField* reviewsLabel;
+	IBOutlet NSScrollView* reviewsView;
+	IBOutlet NSBox* horizontalLine3;
+	IBOutlet NSTextField* moreByLabel;
+	IBOutlet NSScrollView* moreByView;
+	
+}
+
+- (float)resize;
+- (void)updateDetails:(NSDictionary*)details;
+
+@end
 
 @interface TaggableView : NSView
 {
@@ -48,12 +89,15 @@
 	IBOutlet NSWindow *mainWindow;
 	IBOutlet NSWindow *refreshLibraryWindow;	
 	IBOutlet NSView* masterView;
-	IBOutlet NSView* detailView;
-//	IBOutlet NSView* animateView2;
 	IBOutlet NSProgressIndicator* refreshProgress;
 	IBOutlet NSScrollView* collectionView;
 	
+	IBOutlet DetailView* detailView;
+	
+	
+	
 }
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender;
 
 -(IBAction)refreshLibrary:(id)sender;
 -(IBAction)endRefreshLibrary:(id)sender;
@@ -63,6 +107,6 @@
 -(IBAction)dumpLibrary:(id)sender;
 //-(IBAction)showPreferences:(id)sender;
 -(void)buildCollectionView;
--(NSView*)buildContentViewForItem:(NSDictionary*)item withFrame:(NSRect)frame;
+-(DetailView*)buildContentViewForItem:(NSDictionary*)item withFrame:(NSRect)frame;
 
 @end

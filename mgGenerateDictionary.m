@@ -426,8 +426,6 @@
 		}
 	}
 	
-	NSLog(@"%@",returnDictionary);
-	
 	return [returnDictionary autorelease];
 	[pool release];
 }

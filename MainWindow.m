@@ -11,6 +11,171 @@
 //#import "PPC-DirectoryWangers.h"
 //#import "mgGenerateDictionary.h"
 
+@implementation UIHelpers
+
++(NSTextField*)createLabelWithFrame:(NSRect)frame {
+	NSTextField* label = [[NSTextField alloc] initWithFrame:frame]; //24 height of the field.
+	[label setEditable:NO];
+	[label setSelectable:NO];
+	[label setBordered:NO];
+	[label setDrawsBackground:NO];
+	return label;
+}
+
++(NSDictionary*)attributesWithFontSize:(float)size andColour:(NSColor*)colour {
+	return [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:[NSFont systemFontOfSize:size],colour, nil] 
+									   forKeys:[NSArray arrayWithObjects:NSFontAttributeName,NSForegroundColorAttributeName, nil]];
+}
+
++(void)setString:(NSString*)string forLabel:(NSTextField*)label withAttributes:(NSDictionary*)attrs {
+	NSAttributedString* attrsString = [[NSAttributedString alloc] initWithString:string 
+																	  attributes:attrs];
+	[label setAttributedStringValue:attrsString];
+	[attrsString release];
+	attrsString = nil;
+}
+
+@end
+
+
+@implementation DetailView
+
+- (NSView*)createDetailView {
+	//	int verticalPosition = 0;
+	NSRect detailViewSize = NSMakeRect(0, 0, scrollviewFrameSize.size.width, 2000); //will be shrinking the vertical size in due course
+	NSView* returnView = [[NSView alloc] initWithFrame:detailViewSize];
+	
+	NSArray* fields = [NSArray arrayWithObjects:titleField = [UIHelpers createLabelWithFrame:NSMakeRect(20, 20, scrollviewFrameSize.size.width - 40, 30)],
+					   classField = [UIHelpers createLabelWithFrame:NSMakeRect(20, 20, scrollviewFrameSize.size.width - 40, 17)],
+					   publisherField = [UIHelpers createLabelWithFrame:NSMakeRect(20, 20, scrollviewFrameSize.size.width - 40, 17)],
+					   previewLabel = [UIHelpers createLabelWithFrame:NSMakeRect(20, 20, scrollviewFrameSize.size.width - 40, labelHeight)],
+					   descriptionField = [UIHelpers createLabelWithFrame:NSMakeRect(20, 20, scrollviewFrameSize.size.width - 40, contentHeight)],
+					   reviewsLabel = [UIHelpers createLabelWithFrame:NSMakeRect(20, 20, scrollviewFrameSize.size.width - 40, labelHeight)],
+					   moreByLabel = [UIHelpers createLabelWithFrame:NSMakeRect(20, 20, scrollviewFrameSize.size.width - 40, labelHeight)],nil];
+	for (int i = 0; i < [fields count]; i++) {
+		[[fields objectAtIndex:i] setAutoresizingMask:NSViewWidthSizable];
+		[returnView addSubview:[fields objectAtIndex:i]];			
+	}
+	
+	NSArray* separators = [NSArray arrayWithObjects:horizontalLine1 = [[NSBox alloc] initWithFrame:NSMakeRect(10, 20, scrollviewFrameSize.size.width - 40, 1)],
+						   horizontalLine2 = [[NSBox alloc] initWithFrame:NSMakeRect(10, 20, scrollviewFrameSize.size.width - 40, 1)],
+						   horizontalLine3 = [[NSBox alloc] initWithFrame:NSMakeRect(10, 20, scrollviewFrameSize.size.width - 40, 1)],nil];
+	for (int i = 0; i < [separators count]; i++) {
+		[[separators objectAtIndex:i] setAutoresizingMask:NSViewWidthSizable];
+		[[separators objectAtIndex:i] setBoxType:NSBoxSeparator];
+		[returnView addSubview:[separators objectAtIndex:i]];
+	}
+	
+	NSArray* scrollviews = [NSArray arrayWithObjects:previewView = [[NSScrollView alloc] initWithFrame:NSMakeRect(10, 20, scrollviewFrameSize.size.width - 40, contentHeight * 2)],
+							reviewsView = [[NSScrollView alloc] initWithFrame:NSMakeRect(10, 20, scrollviewFrameSize.size.width - 40, contentHeight * 2)],
+							moreByView = [[NSScrollView alloc] initWithFrame:NSMakeRect(10, 20, scrollviewFrameSize.size.width - 40, contentHeight * 2)],nil];
+	for (int i = 0; i < [scrollviews count]; i++) {
+		[[scrollviews objectAtIndex:i] setAutoresizingMask:NSViewWidthSizable|NSViewMinXMargin|NSViewMaxXMargin];
+		[returnView addSubview:[scrollviews objectAtIndex:i]];
+	}
+	
+	ratingView = [[NSView alloc] initWithFrame:NSMakeRect(10, 20, scrollviewFrameSize.size.width - 40, labelHeight)];
+	[returnView addSubview:ratingView];
+	
+	unsigned height = [self resize];
+	detailViewSize = NSMakeRect(0, 0, scrollviewFrameSize.size.width, height + 10);
+	[returnView setFrame:detailViewSize];
+	
+	return returnView;// autorelease];
+	
+}
+
+- (id)initWithFrame:(NSRect)frame {
+	self = [super initWithFrame:frame];
+	if (self != nil) {
+		[self setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable|NSViewMinXMargin|NSViewMaxXMargin|NSViewMinYMargin|NSViewMaxYMargin];
+		[self setAutoresizesSubviews:YES];
+		
+		scrollviewFrameSize = NSMakeRect(0, 0, frame.size.width, frame.size.height-50);
+		detailScrollView = [[NSScrollView alloc] initWithFrame:scrollviewFrameSize];
+		[detailScrollView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable|NSViewMinXMargin|NSViewMaxXMargin|NSViewMinYMargin];
+		[detailScrollView setHasVerticalScroller:YES];
+		[detailScrollView setDrawsBackground:NO];
+		[self addSubview:detailScrollView];
+		
+		NSView* documentView = [self createDetailView];
+		if (documentView) {
+			[detailScrollView setDocumentView:documentView];
+			NSPoint pt = NSMakePoint(0.0, [detailScrollView.documentView bounds].size.height);
+			[detailScrollView.documentView scrollPoint:pt];
+		}
+		
+	}
+	return self;
+}
+
+- (void)dealloc {
+	NSArray* fields = [NSArray arrayWithObjects:moreByView,moreByLabel,horizontalLine3,reviewsView,reviewsLabel,horizontalLine2,descriptionField,previewView,previewLabel,horizontalLine1,ratingView,publisherField,classField,titleField,nil];
+	for (int i = 0; i < [fields count]; i++) {
+		id field = [fields objectAtIndex:i];
+		[field release];
+		field = nil;
+	}
+	[super dealloc];
+}
+
+- (float)resize {
+	float nextposition = 0;
+	NSRect frame;
+	
+	NSArray* fields = [NSArray arrayWithObjects:moreByView,moreByLabel,horizontalLine3,reviewsView,reviewsLabel,horizontalLine2,descriptionField,previewView,previewLabel,horizontalLine1,ratingView,publisherField,classField,titleField,nil];
+	for (int i = 0; i < [fields count]; i++) {
+		id field = [fields objectAtIndex:i];
+		if (field) {
+
+			nextposition = nextposition + frame.size.height + 10;
+			frame = [field frame];
+			if ([field isKindOfClass:[NSBox class]]) {
+				nextposition = nextposition + 5;
+			}
+			frame.origin.y = nextposition;
+			[field setFrame:frame];
+		}
+	}
+	nextposition = nextposition + frame.size.height + 10;
+	
+	return nextposition;
+}
+
+- (void)updateDetails:(NSDictionary*)details {
+	[UIHelpers setString:[details objectForKey:@"Application Name"] 
+				forLabel:titleField 
+		  withAttributes:[UIHelpers attributesWithFontSize:22.0 andColour:[NSColor blackColor]]];
+	
+	[UIHelpers setString:[details objectForKey:@"Category"] 
+				forLabel:classField 
+		  withAttributes:[UIHelpers attributesWithFontSize:contentFontSize andColour:[NSColor grayColor]]];
+	
+	[UIHelpers setString:[details objectForKey:@"Author"] 
+				forLabel:publisherField 
+		  withAttributes:[UIHelpers attributesWithFontSize:contentFontSize andColour:[NSColor blueColor]]];
+	
+	[UIHelpers setString:@"Preview" 
+				forLabel:previewLabel 
+		  withAttributes:[UIHelpers attributesWithFontSize:labelFontSize andColour:[NSColor blackColor]]];
+	
+	[UIHelpers setString:@"Reviews" 
+				forLabel:reviewsLabel 
+		  withAttributes:[UIHelpers attributesWithFontSize:labelFontSize andColour:[NSColor blackColor]]];
+	
+	[UIHelpers setString:[NSString stringWithFormat:@"More By %@", [details objectForKey:@"Author"]]
+				forLabel:moreByLabel 
+		  withAttributes:[UIHelpers attributesWithFontSize:labelFontSize andColour:[NSColor blackColor]]];
+	
+	
+	[UIHelpers setString:@"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." 
+				forLabel:descriptionField 
+		  withAttributes:[UIHelpers attributesWithFontSize:contentFontSize andColour:[NSColor blackColor]]];
+}
+
+@end
+
+
 @implementation TaggableView
 
 - (id)initWithFrame:(NSRect)frame {
@@ -55,10 +220,10 @@
 		[libraryArray release];
 		libraryArray = nil;
 	}
-/*	if (detailPageDictionary) {
-		[detailPageDictionary release];
-		detailPageDictionary = nil;
-	}*/
+	/*	if (detailPageDictionary) {
+	 [detailPageDictionary release];
+	 detailPageDictionary = nil;
+	 }*/
 	[macGarden release];
 	macGarden = nil;
 	
@@ -120,10 +285,16 @@
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(animateToDetailView:) name:@"AnimateToDetailView" object:nil];
 	
 	[self buildCollectionView]; // need to populate the collectionview now that we've loaded.
+	NSPoint pt = NSMakePoint(0.0, [collectionView.documentView bounds].size.height);
+	[collectionView.documentView scrollPoint:pt];
 }
 
 - (void)windowDidResize:(NSNotification *)notification {
 	[self buildCollectionView];
+}
+
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
+	return YES;
 }
 
 #pragma mark refresh library
@@ -211,31 +382,19 @@
 	then = [now copy]; 
 }
 
--(NSTextField*)createLabelWithFrame:(NSRect)frame attributedString:(NSAttributedString*)string {
-	NSTextField* label = [[NSTextField alloc] initWithFrame:frame]; //24 height of the field.
-	[label setEditable:NO];
-	[label setSelectable:NO];
-	[label setBordered:NO];
-	[label setDrawsBackground:NO];
-	[label setAttributedStringValue:string];
-	return [label autorelease];
-}
-
 -(NSView*)buildViewForItem:(NSDictionary*)item withFrame:(NSRect)frame withTag:(int)tag {
 	// need to tag the view with the index into the array
 	TaggableView* itemView = [[TaggableView alloc] initWithFrame:frame];
 	
-	NSAttributedString *attrsString = [[NSAttributedString alloc] initWithString:[item objectForKey:@"Application Name"] 
-																	  attributes:[NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:[NSFont systemFontOfSize:17.0],[NSColor blackColor], nil]
-																											 forKeys:[NSArray arrayWithObjects:NSFontAttributeName,NSForegroundColorAttributeName, nil]]];
-	NSTextField* titleLabel = [self createLabelWithFrame:NSMakeRect(0,50,frame.size.width, 24) attributedString:attrsString];
-	[attrsString release];
+	NSTextField* titleLabel = [UIHelpers createLabelWithFrame:NSMakeRect(0,50,frame.size.width, 24)];
+	[UIHelpers setString:[item objectForKey:@"Application Name"] 
+				forLabel:titleLabel 
+		  withAttributes:[UIHelpers attributesWithFontSize:labelFontSize andColour:[NSColor blackColor]]];
 	
-	NSAttributedString *descAttrsString = [[NSAttributedString alloc] initWithString:[item objectForKey:@"Description"] 
-																		  attributes:[NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:[NSFont systemFontOfSize:12.0],[NSColor grayColor], nil]
-																												 forKeys:[NSArray arrayWithObjects:NSFontAttributeName,NSForegroundColorAttributeName, nil]]];	
-	NSTextField* descLabel = [self createLabelWithFrame:NSMakeRect(0,0,frame.size.width, 50) attributedString:descAttrsString];
-	[descAttrsString release];
+	NSTextField* descLabel = [UIHelpers createLabelWithFrame:NSMakeRect(0,0,frame.size.width, 50)];
+	[UIHelpers setString:[item objectForKey:@"Description"] 
+				forLabel:descLabel 
+		  withAttributes:[UIHelpers attributesWithFontSize:contentFontSize andColour:[NSColor grayColor]]];
 	
 	[itemView addSubview:titleLabel];
 	[itemView addSubview:descLabel];
@@ -265,7 +424,6 @@
 	for (int i = 0; i < itemCount; i++) { //item count needs to be taken from the collectionview
 		int itemColumn = i % columns;
 		int itemRow = (i / columns) + 1;
-		NSLog(@"%d: R%d C%d", i, itemRow, itemColumn);
 		
 		NSDictionary* item = [libraryArray objectAtIndex:i];
 		
@@ -278,7 +436,9 @@
 	}
 	if (replacementView) {
 		collectionView.documentView = replacementView;
+		[replacementView release];
 	}
+	
 }
 
 #pragma mark Build Content View
@@ -332,13 +492,13 @@
 
 -(void)animateToDetailView:(id)object {
 	int tag = [[[object userInfo] valueForKey:@"tag"] intValue];
-	NSLog(@"%@",[libraryArray objectAtIndex:tag]);
 	
 	detailView = [self buildContentViewForItem:[libraryArray objectAtIndex:tag] 
 									 withFrame:NSMakeRect([masterView frame].size.width, 
 														  0, 
 														  [masterView frame].size.width, 
 														  [masterView frame].size.height)]; //put dictionary into Item
+	[detailView updateDetails:[libraryArray objectAtIndex:tag]];
 	[[mainWindow contentView] addSubview:detailView];
 	
 	[self swapView:masterView toView:detailView movingIn:YES];
@@ -348,15 +508,17 @@
 	[refreshThread release];
 	refreshThread = nil;
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"UpdateDetailView" object:nil];
+	
+	NSLog(@"%@",[object userInfo]);
 }
 
--(NSView*)buildContentViewForItem:(NSDictionary*)item withFrame:(NSRect)frame { //build item view here.
+-(DetailView*)buildContentViewForItem:(NSDictionary*)item withFrame:(NSRect)frame { //build item view here.
 	
 	refreshThread = [[refreshLibraryThread alloc] init];
 	[NSThread detachNewThreadSelector:@selector(getDetailPage:) toTarget:refreshThread withObject:item];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateDetailView:) name:@"UpdateDetailView" object:nil];
 	
-	NSView* newView = [[NSView alloc] initWithFrame:[[mainWindow contentView] frame]]; // may want to have a globally accessible view here.
+	DetailView* newView = [[DetailView alloc] initWithFrame:[[mainWindow contentView] frame]]; // may want to have a globally accessible view here.
 	[newView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable|NSViewMinXMargin|NSViewMaxXMargin|NSViewMinYMargin|NSViewMaxYMargin];
 	[newView setAutoresizesSubviews:YES];
 	
@@ -367,7 +529,6 @@
 	[backButton setTarget:self];
     [backButton setAction:@selector(returnToMainView:)];
 	[newView addSubview:backButton];
-	
 	[backButton release];
 	
 	//create ivars for images, description, download, ratings and reviews.  Add the ivars to the contentview here.
